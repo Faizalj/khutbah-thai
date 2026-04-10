@@ -1,0 +1,323 @@
+/* คุฏบะฮ์แปลไทย — Global Styles */
+
+:root {
+  --green-900: #0d2818;
+  --green-800: #1a3c2a;
+  --green-700: #2d5a3f;
+  --green-600: #3d7a55;
+  --green-100: #e8f5ec;
+  --green-50: #f0faf3;
+  --gold-500: #c9a84c;
+  --gold-300: #e0cc8a;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555;
+  --text-light: #f0faf3;
+  --bg-main: #fafdf8;
+  --bg-card: #ffffff;
+  --border: #e0e8e2;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Sarabun', 'Noto Sans Thai', sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-main);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--green-700);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--green-600);
+  text-decoration: underline;
+}
+
+/* Container */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container-wide {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Header */
+.site-header {
+  background: var(--green-900);
+  color: var(--text-light);
+  padding: 1.5rem 0;
+  text-align: center;
+  border-bottom: 3px solid var(--gold-500);
+}
+
+.site-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.site-header p {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.site-header a {
+  color: var(--text-light);
+  text-decoration: none;
+}
+
+/* Footer */
+.site-footer {
+  background: var(--green-900);
+  color: var(--text-light);
+  text-align: center;
+  padding: 2rem 0;
+  margin-top: 4rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-date {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0.25rem 0;
+  color: var(--green-800);
+}
+
+.card-sheikh {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.card-mosque {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.mosque-makkah {
+  background: var(--green-100);
+  color: var(--green-800);
+}
+
+.mosque-madinah {
+  background: #eef0fa;
+  color: #2a3672;
+}
+
+/* Filter */
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg-card);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--green-800);
+  color: white;
+  border-color: var(--green-800);
+}
+
+/* Detail page */
+.khutbah-header {
+  background: var(--green-900);
+  color: var(--text-light);
+  padding: 2.5rem 0;
+  border-bottom: 3px solid var(--gold-500);
+}
+
+.khutbah-header h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.khutbah-meta {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.khutbah-content {
+  padding: 2.5rem 0;
+  font-size: 1.1rem;
+  line-height: 2.1;
+  color: #2a2a2a;
+}
+
+.khutbah-content p {
+  margin-bottom: 1.25rem;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.khutbah-content h2 {
+  color: var(--green-800);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 3rem 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--green-50);
+  border-right: 4px solid var(--green-700);
+  border-radius: 0 8px 8px 0;
+}
+
+.khutbah-content h3 {
+  color: var(--green-700);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 2rem 0 1rem;
+}
+
+.khutbah-content blockquote {
+  border-right: 4px solid var(--gold-500);
+  padding: 1rem 1.5rem;
+  margin: 2rem 0;
+  background: var(--green-50);
+  border-radius: 0 8px 8px 0;
+  font-style: normal;
+  font-size: 1.05rem;
+  line-height: 2;
+  color: var(--green-900);
+}
+
+.khutbah-content strong {
+  color: var(--green-800);
+  font-weight: 700;
+}
+
+.khutbah-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem auto;
+  width: 60%;
+}
+
+/* Section divider — ornamental */
+.khutbah-content hr + h2 {
+  margin-top: 1.5rem;
+}
+
+/* AI Disclaimer */
+.ai-disclaimer {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 2rem 0;
+  font-size: 0.85rem;
+  color: #5d4e00;
+  line-height: 1.6;
+}
+
+/* Source box */
+.source-box {
+  background: var(--green-50);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 2rem 0 3rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.source-box a {
+  word-break: break-all;
+}
+
+/* YouTube embed */
+.video-embed {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  margin: 2rem 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.video-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Reading progress indicator */
+.reading-meta {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.reading-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .site-header h1 { font-size: 1.4rem; }
+  .khutbah-header h1 { font-size: 1.2rem; }
+  .khutbah-content { font-size: 1rem; }
+  .container { padding: 0 1rem; }
+}

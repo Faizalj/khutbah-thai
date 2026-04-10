@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import { loadAllEntries, formatThaiDate } from '../lib/content';
+
+const entries = loadAllEntries();
+---
+
+<Base title="หน้าแรก">
+  <section class="container-wide" style="padding-top: 2rem;">
+
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">ทั้งหมด</button>
+      <button class="filter-btn" data-filter="makkah">มักกะฮ์</button>
+      <button class="filter-btn" data-filter="madinah">มะดีนะฮ์</button>
+    </div>
+
+    {entries.length === 0 && (
+      <p style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+        ยังไม่มีคุฏบะฮ์ในระบบ
+      </p>
+    )}
+
+    <div id="entries">
+      {entries.map((entry) => (
+        <a href={`/khutbah/${entry.slug}/`} class="card" data-mosque={entry.mosque} style="display: block; text-decoration: none; color: inherit;">
+          <div class="card-date">{formatThaiDate(entry.date)}</div>
+          <div class="card-title">คุฏบะฮ์วันศุกร์ — {entry.mosqueThai}</div>
+          <div class="card-sheikh">โดย {entry.sheikh}</div>
+          <span class={`card-mosque ${entry.mosque === 'makkah' ? 'mosque-makkah' : 'mosque-madinah'}`}>
+            {entry.mosque === 'makkah' ? 'มักกะฮ์' : 'มะดีนะฮ์'}
+          </span>
+        </a>
+      ))}
+    </div>
+
+  </section>
+</Base>
+
+<script>
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = (btn as HTMLElement).dataset.filter;
+
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('#entries .card').forEach(card => {
+        const mosque = (card as HTMLElement).dataset.mosque;
+        if (filter === 'all' || mosque === filter) {
+          (card as HTMLElement).style.display = 'block';
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  });
+</script>

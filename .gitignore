@@ -1,0 +1,10 @@
+node_modules/
+output/
+.env
+*.mp3
+*.mp4
+*.wav
+.DS_Store
+website/dist/
+website/node_modules/
+website/.astro/

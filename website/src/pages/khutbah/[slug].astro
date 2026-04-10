@@ -1,0 +1,72 @@
+---
+import Base from '../../layouts/Base.astro';
+import { loadAllEntries, loadEntryBySlug, formatThaiDate } from '../../lib/content';
+
+export function getStaticPaths() {
+  const entries = loadAllEntries();
+  return entries.map(entry => ({
+    params: { slug: entry.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const entry = loadEntryBySlug(slug!);
+
+if (!entry) {
+  return Astro.redirect('/');
+}
+
+const thaiDate = formatThaiDate(entry.date);
+const description = `คุฏบะฮ์วันศุกร์จาก${entry.mosqueThai} โดย ${entry.sheikh} วันที่ ${thaiDate}`;
+
+// Estimate reading time (~200 Thai words per minute)
+const wordCount = entry.translationHtml.replace(/<[^>]+>/g, '').length / 2;
+const readingMinutes = Math.max(1, Math.round(wordCount / 200));
+---
+
+<Base title={`คุฏบะฮ์ ${entry.mosqueThai} — ${thaiDate}`} description={description}>
+
+  <div class="khutbah-header">
+    <div class="container">
+      <p class="khutbah-meta">
+        <a href="/" style="color: var(--text-light); opacity: 0.7;">หน้าแรก</a> &rsaquo; คุฏบะฮ์วันศุกร์
+      </p>
+      <h1>คุฏบะฮ์วันศุกร์ — {entry.mosqueThai}</h1>
+      <p class="khutbah-meta">
+        โดย {entry.sheikh} &middot; {thaiDate}
+      </p>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="reading-meta">
+      <span>อ่าน ~{readingMinutes} นาที</span>
+      <span>{entry.mosque === 'makkah' ? 'มัสยิดอัลฮะรอม' : 'มัสยิดอันนะบะวีย์'}</span>
+    </div>
+
+    <div class="ai-disclaimer">
+      แปลและอ่านออกเสียงโดยระบบปัญญาประดิษฐ์ หากมีข้อผิดพลาดประการใด ได้โปรดแจ้งเราเพื่อแก้ไข
+    </div>
+
+    <div class="video-embed">
+      <iframe
+        src={`https://www.youtube.com/embed/${entry.videoId}`}
+        title={`คุฏบะฮ์ ${entry.mosqueThai}`}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+      ></iframe>
+    </div>
+
+    <article class="khutbah-content">
+      <Fragment set:html={entry.translationHtml} />
+    </article>
+
+    <div class="source-box">
+      แหล่งที่มา: <a href={entry.videoUrl} target="_blank" rel="noopener">{entry.videoUrl}</a>
+    </div>
+
+  </div>
+
+</Base>

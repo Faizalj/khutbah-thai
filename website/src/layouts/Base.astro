@@ -1,0 +1,52 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const { title, description = "คุฏบะฮ์วันศุกร์จากมักกะฮ์และมะดีนะฮ์ แปลเป็นภาษาไทย ทุกสัปดาห์", ogImage } = Astro.props;
+const fullTitle = title === "หน้าแรก" ? "คุฏบะฮ์แปลไทย" : `${title} — คุฏบะฮ์แปลไทย`;
+---
+<!DOCTYPE html>
+<html lang="th" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{fullTitle}</title>
+  <meta name="description" content={description}>
+  <meta property="og:title" content={fullTitle}>
+  <meta property="og:description" content={description}>
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="th_TH">
+  {ogImage && <meta property="og:image" content={ogImage}>}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/">
+        <h1>คุฏบะฮ์แปลไทย</h1>
+        <p>คุฏบะฮ์วันศุกร์จากมักกะฮ์และมะดีนะฮ์ แปลเป็นภาษาไทย</p>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <slot />
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>คุฏบะฮ์แปลไทย — แปลและอ่านออกเสียงโดยระบบปัญญาประดิษฐ์</p>
+      <p>หากมีข้อผิดพลาดประการใด ได้โปรดแจ้งเราเพื่อแก้ไข</p>
+    </div>
+  </footer>
+</body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

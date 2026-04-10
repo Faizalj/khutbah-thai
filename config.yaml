@@ -1,0 +1,46 @@
+# คุฏบะฮ์แปลไทย — Configuration
+# Khutbah Thai Translation Pipeline
+
+source:
+  channel_id: "UC37tvO47bp_cKH1f4_VQCOA"  # Haramain Recordings
+  channel_name: "Haramain Recordings"
+  filter_pattern: "Jumu'ah Khutbah"         # Match this in video title
+  subtitle_lang: "ar-orig"                   # Arabic original auto-captions
+  expected_videos_per_week: 2                # Makkah + Madinah
+
+pipeline:
+  stages:
+    - fetch      # Poll channel, filter, download transcript
+    - translate  # Arabic → Thai via Claude
+    - tts        # Thai text → ElevenLabs audio
+    - produce    # Mix audio + subtitles → video
+    - publish    # Upload to platforms (manual initially)
+
+tts:
+  provider: "elevenlabs"
+  voice_id: "camsOHfnF030L7enGMzZ"  # Faizal's voice clone
+  arabic_volume: 0.20    # Background Arabic audio level
+  thai_volume: 0.80      # Thai TTS voiceover level
+
+intro_template: "คุฏบะฮ์แปลไทย. คุฏบะฮ์วันศุกร์จาก{mosque_thai}. โดยเชค {sheikh}. วันที่ {date_thai}."
+outro_template: "แปลและอ่านออกเสียงโดยระบบปัญญาประดิษฐ์. หากมีข้อผิดพลาดประการใด ได้โปรดแจ้งเราเพื่อแก้ไข. ติดตามคุฏบะฮ์แปลไทยทุกสัปดาห์."
+
+output:
+  content_dir: "content"        # Git-tracked translations
+  audio_dir: "output/audio"     # Generated TTS (gitignored)
+  video_dir: "output/video"     # Full-length videos (gitignored)
+  reels_dir: "output/reels"     # Short clips (gitignored)
+
+naming:
+  # Content: content/YYYY-MM-DD/makkah/ or content/YYYY-MM-DD/madinah/
+  # Audio:   output/audio/YYYY-MM-DD-makkah-th.mp3
+  # Video:   output/video/YYYY-MM-DD-makkah-full.mp4
+  # Reels:   output/reels/YYYY-MM-DD-makkah-reel-01.mp4
+  date_format: "YYYY-MM-DD"
+  mosques:
+    - id: makkah
+      title_match: "Makkah"
+      thai_name: "มักกะฮ์"
+    - id: madinah
+      title_match: "Madeenah"
+      thai_name: "มะดีนะฮ์"
