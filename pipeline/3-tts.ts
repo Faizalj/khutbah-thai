@@ -34,9 +34,14 @@ if (!API_KEY) {
 
 /** Strip markdown formatting to get clean TTS-ready narration text */
 function stripMarkdown(md: string): string {
-  return md
-    // Remove YAML frontmatter
-    .replace(/^---[\s\S]*?---\n*/m, "")
+  // Remove YAML frontmatter only if file literally starts with ---
+  let text = md;
+  if (text.startsWith("---\n")) {
+    const endIdx = text.indexOf("\n---\n", 4);
+    if (endIdx > 0) text = text.slice(endIdx + 5);
+  }
+
+  return text
     // Remove headers (## คุฏบะฮ์แรก, etc)
     .replace(/^#{1,6}\s+.*$/gm, "")
     // Remove horizontal rules
@@ -84,28 +89,35 @@ function stripMarkdown(md: string): string {
     .trim();
 }
 
-/** Split text into chunks of ~maxChars, breaking at paragraph boundaries.
- *  Ensures minimum chunk size to avoid quiet/unstable TTS output */
+/** Split text into chunks of ~maxChars, breaking at sentence boundaries.
+ *  Handles both paragraph-separated and single-block text */
 function chunkText(text: string, maxChars: number = 1500, minChars: number = 300): string[] {
-  const paragraphs = text.split(/\n\n+/);
+  // First try paragraph split
+  let segments = text.split(/\n\n+/).filter(s => s.trim().length > 0);
+
+  // If only 1 big paragraph, split by sentences (. followed by space or newline)
+  if (segments.length <= 1 && text.length > maxChars) {
+    segments = text.split(/(?<=\.)\s+/).filter(s => s.trim().length > 0);
+  }
+
   const chunks: string[] = [];
   let current = "";
 
-  for (const para of paragraphs) {
-    const trimmed = para.trim();
+  for (const seg of segments) {
+    const trimmed = seg.trim();
     if (!trimmed) continue;
 
     if (current.length + trimmed.length > maxChars && current.length >= minChars) {
       chunks.push(current.trim());
       current = "";
     }
-    current += trimmed + "\n\n";
+    current += trimmed + " ";
   }
 
   // Merge last chunk if too short
   if (current.trim()) {
     if (current.trim().length < minChars && chunks.length > 0) {
-      chunks[chunks.length - 1] += "\n\n" + current.trim();
+      chunks[chunks.length - 1] += " " + current.trim();
     } else {
       chunks.push(current.trim());
     }

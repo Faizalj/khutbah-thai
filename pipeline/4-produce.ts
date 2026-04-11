@@ -17,6 +17,7 @@ import { execSync } from "child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "fs";
 import { parse as parseYaml } from "yaml";
 import { join } from "path";
+import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 
 const ROOT = import.meta.dir.replace("/pipeline", "");
 const CONFIG = parseYaml(readFileSync(join(ROOT, "config.yaml"), "utf-8"));
@@ -145,21 +146,177 @@ function mixAudio(thaiPath: string, arabicPath: string, outputPath: string): voi
   );
 }
 
-/** Create video from audio + static background image + subtitles */
-function createVideo(audioPath: string, outputPath: string, title: string): void {
-  const duration = getDuration(audioPath);
+// Register Thai font
+const SARABUN_PATH = "/System/Library/AssetsV2/com_apple_MobileAsset_Font8/cf0dc8d3b09f9ba379660e591e82566e2b557949.asset/AssetData/Sarabun.ttc";
+try { GlobalFonts.registerFromPath(SARABUN_PATH, "Sarabun"); } catch {}
+
+/** Download video thumbnail from YouTube */
+function downloadThumbnail(videoId: string, outputPath: string): void {
+  if (existsSync(outputPath)) return;
+  execSync(
+    `yt-dlp --write-thumbnail --skip-download --convert-thumbnails png -o "${outputPath.replace('.png', '')}" "https://www.youtube.com/watch?v=${videoId}" 2>/dev/null`,
+    { timeout: 30000 }
+  );
+}
+
+/** Create title card with video thumbnail background + text overlay */
+async function createTitleCard(title: string, subtitle: string, thumbnailPath: string, outputPath: string): Promise<void> {
+  const canvas = createCanvas(1920, 1080);
+  const ctx = canvas.getContext("2d");
+
+  // Draw thumbnail as background
+  if (existsSync(thumbnailPath)) {
+    const bg = await loadImage(thumbnailPath);
+    ctx.drawImage(bg, 0, 0, 1920, 1080);
+  } else {
+    ctx.fillStyle = "#0d2818";
+    ctx.fillRect(0, 0, 1920, 1080);
+  }
+
+  // Dark overlay for readability
+  ctx.fillStyle = "rgba(13, 40, 24, 0.65)";
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  // Title (gold)
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#c9a84c";
+  ctx.font = "bold 56px Sarabun";
+  ctx.fillText(title, 960, 420);
+
+  // Subtitle — mosque name (white)
+  ctx.fillStyle = "white";
+  ctx.font = "bold 44px Sarabun";
+  ctx.fillText(subtitle.split(" — ")[0] || subtitle, 960, 490);
+
+  // Sheikh + date (gold)
+  ctx.fillStyle = "#c9a84c";
+  ctx.font = "30px Sarabun";
+  const sheikhDate = subtitle.includes(" — ") ? subtitle.split(" — ").slice(1).join(" — ") : "";
+  if (sheikhDate) ctx.fillText(sheikhDate, 960, 550);
+
+  // Brand (bottom)
+  ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+  ctx.font = "24px Sarabun";
+  ctx.fillText("คุฏบะฮ์แปลไทย", 960, 980);
+
+  writeFileSync(outputPath, canvas.toBuffer("image/png"));
+}
+
+/** Download source video from YouTube */
+function downloadSourceVideo(videoId: string, outputPath: string): void {
+  if (existsSync(outputPath)) return;
+  execSync(
+    `yt-dlp -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" --merge-output-format mp4 -o "${outputPath}" "https://www.youtube.com/watch?v=${videoId}" 2>/dev/null`,
+    { timeout: 300000 }
+  );
+}
+
+/** Create title card for intro/outro */
+async function createTitleCardFile(title: string, subtitle: string, videoId: string, outputPath: string): Promise<void> {
+  // Download thumbnail for background
+  const thumbPath = outputPath.replace(".png", "-thumb.png");
+  try { downloadThumbnail(videoId, thumbPath); } catch {}
+
+  await createTitleCard(title, subtitle, thumbPath, outputPath);
+  try { unlinkSync(thumbPath); } catch {}
+}
+
+/** Create final video: title card intro + source video with Thai TTS + title card outro */
+async function createVideo(audioPath: string, outputPath: string, title: string, subtitle: string, videoId: string, metadata: any, date: string, mosque: string): Promise<void> {
   const videoDir = join(ROOT, CONFIG.output.video_dir);
+  const audioDir = join(ROOT, CONFIG.output.audio_dir);
   mkdirSync(videoDir, { recursive: true });
 
-  // Generate a simple dark background with title text using ffmpeg
-  // 1920x1080, dark green Islamic aesthetic
+  const thaiDur = getDuration(audioPath);
+  const thaiVol = CONFIG.tts.thai_volume;
+  const arVol = CONFIG.tts.arabic_volume;
+
+  // Step 1: Download source video
+  const sourceVideo = join(audioDir, `source-${videoId}.mp4`);
+  if (!existsSync(sourceVideo)) {
+    console.log(`     📥 Downloading source video...`);
+    downloadSourceVideo(videoId, sourceVideo);
+    console.log(`     ✅ Source video downloaded`);
+  }
+
+  // Step 2: Create title card image (for intro/outro segments)
+  const titleImg = join(audioDir, `titlecard-${videoId}.png`);
+  if (!existsSync(titleImg)) {
+    await createTitleCardFile(title, subtitle, videoId, titleImg);
+    console.log(`     ✅ Title card created`);
+  }
+
+  // Step 3: Create intro video (title card 5s)
+  const introVideo = join(audioDir, `intro-${videoId}.mp4`);
+  if (!existsSync(introVideo)) {
+    // Get intro audio
+    const introAudio = join(audioDir, `${date}-${mosque}-intro-padded.mp3`);
+    if (existsSync(introAudio)) {
+      const introDur = getDuration(introAudio);
+      execSync(
+        `ffmpeg -y -loop 1 -i "${titleImg}" -i "${introAudio}" ` +
+        `-c:v libx264 -tune stillimage -preset fast -crf 23 ` +
+        `-c:a aac -b:a 192k -t ${introDur} -pix_fmt yuv420p "${introVideo}" 2>/dev/null`,
+        { timeout: 30000 }
+      );
+    }
+  }
+
+  // Step 4: Create main segment — source video + Thai TTS mixed audio
+  const mainVideo = join(audioDir, `main-${videoId}.mp4`);
+  if (!existsSync(mainVideo)) {
+    console.log(`     🎚️ Mixing source video + Thai TTS...`);
+    // Get body TTS audio path
+    const bodyAudio = join(audioDir, `${date}-${mosque}-th.mp3`);
+    const bodyDur = getDuration(bodyAudio);
+
+    // Trim source video from khutbah start + replace audio with Thai TTS + lowered Arabic
+    const startSec = metadata.khutbah_start_seconds || 25;
+    console.log(`     ✂️ Trimming video from ${startSec}s (skipping pre-khutbah)...`);
+    // Trim source video from khutbah start, match duration to TTS audio
+    // If source video is shorter than TTS, use source video duration instead
+    const sourceVideoDur = getDuration(sourceVideo) - startSec;
+    const mainDur = Math.min(bodyDur, sourceVideoDur);
+    console.log(`     📐 Source: ${(sourceVideoDur / 60).toFixed(1)}min, TTS: ${(bodyDur / 60).toFixed(1)}min → using ${(mainDur / 60).toFixed(1)}min`);
+
+    execSync(
+      `ffmpeg -y -ss ${startSec} -t ${mainDur} -i "${sourceVideo}" -i "${bodyAudio}" ` +
+      `-filter_complex "[0:a]volume=${arVol}[ar];[1:a]atrim=0:${mainDur},volume=${thaiVol}[thai];[thai][ar]amix=inputs=2:duration=first[aout]" ` +
+      `-map 0:v -map "[aout]" ` +
+      `-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -pix_fmt yuv420p "${mainVideo}" 2>/dev/null`,
+      { timeout: 600000 }
+    );
+    console.log(`     ✅ Main segment created (${(bodyDur / 60).toFixed(1)} min)`);
+  }
+
+  // Step 5: Create outro video (title card 5s)
+  const outroVideo = join(audioDir, `outro-${videoId}.mp4`);
+  if (!existsSync(outroVideo)) {
+    const outroAudio = join(audioDir, `${date}-${mosque}-outro-padded.mp3`);
+    if (existsSync(outroAudio)) {
+      const outroDur = getDuration(outroAudio);
+      execSync(
+        `ffmpeg -y -loop 1 -i "${titleImg}" -i "${outroAudio}" ` +
+        `-c:v libx264 -tune stillimage -preset fast -crf 23 ` +
+        `-c:a aac -b:a 192k -t ${outroDur} -pix_fmt yuv420p "${outroVideo}" 2>/dev/null`,
+        { timeout: 30000 }
+      );
+    }
+  }
+
+  // Step 6: Concat intro + main + outro using filter_complex for reliable concat
+  console.log(`     🔗 Assembling final video...`);
+  const parts = [introVideo, mainVideo, outroVideo].filter(p => existsSync(p));
+  const n = parts.length;
+  const inputs = parts.map((p, i) => `-i "${p}"`).join(" ");
+  const filterParts = parts.map((_, i) => `[${i}:v:0][${i}:a:0]`).join("");
+
   execSync(
-    `ffmpeg -y ` +
-    `-f lavfi -i "color=c=0x1a3c2a:s=1920x1080:d=${duration}" ` +
-    `-i "${audioPath}" ` +
-    `-vf "drawtext=text='${title.replace(/'/g, "\\'")}':fontsize=48:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:fontfile=/System/Library/Fonts/Supplemental/Arial Unicode.ttf" ` +
-    `-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -shortest "${outputPath}" 2>/dev/null`,
-    { timeout: 300000 }
+    `ffmpeg -y ${inputs} ` +
+    `-filter_complex "${filterParts}concat=n=${n}:v=1:a=1[outv][outa]" ` +
+    `-map "[outv]" -map "[outa]" ` +
+    `-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -pix_fmt yuv420p "${outputPath}" 2>/dev/null`,
+    { timeout: 600000 }
   );
 }
 
@@ -283,10 +440,11 @@ async function produceKhutbah(dateMosque: string): Promise<boolean> {
     ? "มัสยิดอัลฮะรอม มักกะฮ์"
     : "มัสยิดอันนะบะวีย์ มะดีนะฮ์";
   const title = `คุฏบะฮ์วันศุกร์ — ${mosqueFull}`;
+  const subtitle = `โดย ${metadata.sheikh} — ${formatThaiDate(date)}`;
 
   console.log(`     🎥 Creating video...`);
   try {
-    createVideo(videoAudio, videoPath, title);
+    await createVideo(videoAudio, videoPath, title, subtitle, metadata.video_id, metadata, date, mosque);
     const dur = getDuration(videoAudio);
     console.log(`     ✅ Video: ${videoPath}`);
     console.log(`     ⏱️ Duration: ${(dur / 60).toFixed(1)} min`);

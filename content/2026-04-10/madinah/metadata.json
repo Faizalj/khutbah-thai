@@ -6,8 +6,12 @@
   "video_id": "oYmGv02hbo0",
   "video_url": "https://www.youtube.com/watch?v=oYmGv02hbo0",
   "source_channel": "Haramain Recordings",
-  "status": "translated",
+  "status": "produced",
   "fetched_at": "2026-04-10T14:10:06.813Z",
   "translated_at": "2026-04-10T23:08:17.432Z",
-  "corrected_at": "2026-04-10T16:17:58.240Z"
+  "corrected_at": "2026-04-10T16:17:58.240Z",
+  "tts_at": "2026-04-11T10:23:34.253Z",
+  "audio_duration_seconds": 1334,
+  "produced_at": "2026-04-11T15:20:11.470Z",
+  "khutbah_start_seconds": 27
 }

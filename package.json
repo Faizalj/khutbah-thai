@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.97",
     "yaml": "^2.8.3"
   }
 }
