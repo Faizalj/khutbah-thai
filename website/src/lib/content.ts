@@ -51,6 +51,12 @@ function mdToHtml(md: string): string {
   clean = clean.replace(/^- \*\*[^*]+\*\*:.*$/gm, "");
   // Remove "ไฮไลท์สำหรับ Reels" section and everything after it
   clean = clean.replace(/## ไฮไลท์สำหรับ Reels[\s\S]*$/m, "");
+  // Remove periods — used for TTS pacing only, not for display
+  // Only remove periods that are NOT part of numbers (e.g. 3.14) or abbreviations
+  // Preserve newlines to keep paragraph structure
+  clean = clean.replace(/\.(\n)/g, "$1");  // period before newline → just newline
+  clean = clean.replace(/\. /g, " ");       // period + space → just space
+  clean = clean.replace(/\.$/gm, "");       // period at end of line
 
   return marked.parse(clean, { async: false }) as string;
 }
