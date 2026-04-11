@@ -14,6 +14,7 @@ export interface KhutbahEntry {
   videoId: string;
   videoUrl: string;
   slug: string;          // e.g. "2026-04-10-makkah"
+  title: string;         // AI-generated topic title
   translationHtml: string;
   topics?: string[];
 }
@@ -70,6 +71,7 @@ function loadEntry(date: string, mosque: string): KhutbahEntry | null {
     videoId: meta.video_id,
     videoUrl: meta.video_url,
     slug: `${meta.date}-${meta.mosque}`,
+    title: meta.title || `คุฏบะฮ์วันศุกร์`,
     translationHtml: mdToHtml(translation),
     topics: meta.topics,
   };

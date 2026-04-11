@@ -8,6 +8,12 @@ const entries = loadAllEntries();
 <Base title="หน้าแรก">
   <section class="container-wide" style="padding-top: 2rem;">
 
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="ค้นหาคุฏบะฮ์... (หัวข้อ, เชค, วันที่)" />
+    </div>
+
+    <!-- Filter -->
     <div class="filter-bar">
       <button class="filter-btn active" data-filter="all">ทั้งหมด</button>
       <button class="filter-btn" data-filter="makkah">มักกะฮ์</button>
@@ -22,9 +28,14 @@ const entries = loadAllEntries();
 
     <div id="entries">
       {entries.map((entry) => (
-        <a href={`/khutbah/${entry.slug}/`} class="card" data-mosque={entry.mosque} style="display: block; text-decoration: none; color: inherit;">
+        <a href={`/khutbah/${entry.slug}/`}
+           class="card"
+           data-mosque={entry.mosque}
+           data-search={`${entry.title} ${entry.sheikh} ${formatThaiDate(entry.date)} ${entry.mosqueThai} ${(entry.topics || []).join(' ')}`}
+           style="display: block; text-decoration: none; color: inherit;">
           <div class="card-date">{formatThaiDate(entry.date)}</div>
-          <div class="card-title">คุฏบะฮ์วันศุกร์ — {entry.mosqueThai}</div>
+          <div class="card-title">{entry.title}</div>
+          <div class="card-subtitle">{entry.mosqueThai}</div>
           <div class="card-sheikh">โดย {entry.sheikh}</div>
           <span class={`card-mosque ${entry.mosque === 'makkah' ? 'mosque-makkah' : 'mosque-madinah'}`}>
             {entry.mosque === 'makkah' ? 'มักกะฮ์' : 'มะดีนะฮ์'}
@@ -33,25 +44,87 @@ const entries = loadAllEntries();
       ))}
     </div>
 
+    <!-- Pagination placeholder — will activate when entries > 20 -->
+    <div id="pagination" class="pagination" style="display: none;">
+      <button id="prev-page" class="page-btn" disabled>ก่อนหน้า</button>
+      <span id="page-info" class="page-info"></span>
+      <button id="next-page" class="page-btn">ถัดไป</button>
+    </div>
+
   </section>
 </Base>
 
 <script>
+  const ITEMS_PER_PAGE = 20;
+  let currentFilter = 'all';
+  let currentSearch = '';
+  let currentPage = 1;
+
+  const allCards = Array.from(document.querySelectorAll('#entries .card')) as HTMLElement[];
+
+  function getFilteredCards(): HTMLElement[] {
+    return allCards.filter(card => {
+      const mosque = card.dataset.mosque || '';
+      const searchText = (card.dataset.search || '').toLowerCase();
+      const matchFilter = currentFilter === 'all' || mosque === currentFilter;
+      const matchSearch = !currentSearch || searchText.includes(currentSearch.toLowerCase());
+      return matchFilter && matchSearch;
+    });
+  }
+
+  function render() {
+    const filtered = getFilteredCards();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+
+    // Hide all, then show filtered + paginated
+    allCards.forEach(c => c.style.display = 'none');
+    filtered.forEach((c, i) => {
+      c.style.display = (i >= start && i < end) ? 'block' : 'none';
+    });
+
+    // Pagination
+    const pag = document.getElementById('pagination')!;
+    const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
+    const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
+    const pageInfo = document.getElementById('page-info')!;
+
+    if (filtered.length > ITEMS_PER_PAGE) {
+      pag.style.display = 'flex';
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      pageInfo.textContent = `หน้า ${currentPage} จาก ${totalPages} (${filtered.length} รายการ)`;
+    } else {
+      pag.style.display = 'none';
+    }
+  }
+
+  // Filter buttons
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const filter = (btn as HTMLElement).dataset.filter;
-
+      currentFilter = (btn as HTMLElement).dataset.filter || 'all';
+      currentPage = 1;
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
-      document.querySelectorAll('#entries .card').forEach(card => {
-        const mosque = (card as HTMLElement).dataset.mosque;
-        if (filter === 'all' || mosque === filter) {
-          (card as HTMLElement).style.display = 'block';
-        } else {
-          (card as HTMLElement).style.display = 'none';
-        }
-      });
+      render();
     });
   });
+
+  // Search
+  const searchInput = document.getElementById('search') as HTMLInputElement;
+  searchInput.addEventListener('input', () => {
+    currentSearch = searchInput.value;
+    currentPage = 1;
+    render();
+  });
+
+  // Pagination buttons
+  document.getElementById('prev-page')?.addEventListener('click', () => { currentPage--; render(); });
+  document.getElementById('next-page')?.addEventListener('click', () => { currentPage++; render(); });
+
+  // Initial render
+  render();
 </script>

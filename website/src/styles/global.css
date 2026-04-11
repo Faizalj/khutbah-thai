@@ -94,6 +94,71 @@ a:hover {
   opacity: 0.8;
 }
 
+/* Search */
+.search-bar {
+  margin: 1.5rem 0 0.5rem;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  border-color: var(--green-600);
+  box-shadow: 0 0 0 3px rgba(61, 122, 85, 0.1);
+}
+
+.search-bar input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.page-btn {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--green-800);
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: var(--green-800);
+  color: white;
+  border-color: var(--green-800);
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 /* Cards */
 .card {
   background: var(--bg-card);
@@ -120,8 +185,14 @@ a:hover {
   color: var(--green-800);
 }
 
-.card-sheikh {
+.card-subtitle {
   font-size: 0.9rem;
+  color: var(--green-700);
+  margin-bottom: 0.15rem;
+}
+
+.card-sheikh {
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 

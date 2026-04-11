@@ -24,16 +24,16 @@ const wordCount = entry.translationHtml.replace(/<[^>]+>/g, '').length / 2;
 const readingMinutes = Math.max(1, Math.round(wordCount / 200));
 ---
 
-<Base title={`คุฏบะฮ์ ${entry.mosqueThai} — ${thaiDate}`} description={description}>
+<Base title={`${entry.title} — ${entry.mosqueThai}`} description={description}>
 
   <div class="khutbah-header">
     <div class="container">
       <p class="khutbah-meta">
         <a href="/" style="color: var(--text-light); opacity: 0.7;">หน้าแรก</a> &rsaquo; คุฏบะฮ์วันศุกร์
       </p>
-      <h1>คุฏบะฮ์วันศุกร์ — {entry.mosqueThai}</h1>
+      <h1>{entry.title}</h1>
       <p class="khutbah-meta">
-        โดย {entry.sheikh} &middot; {thaiDate}
+        {entry.mosqueThai} &middot; โดย {entry.sheikh} &middot; {thaiDate}
       </p>
     </div>
   </div>

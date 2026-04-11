@@ -18,6 +18,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "
 import { parse as parseYaml } from "yaml";
 import { join } from "path";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
+import { generateSubtitle } from "./subtitle-gen";
 
 const ROOT = import.meta.dir.replace("/pipeline", "");
 const CONFIG = parseYaml(readFileSync(join(ROOT, "config.yaml"), "utf-8"));
@@ -286,10 +287,61 @@ async function createVideo(audioPath: string, outputPath: string, title: string,
       `-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -pix_fmt yuv420p "${mainVideo}" 2>/dev/null`,
       { timeout: 600000 }
     );
-    console.log(`     ✅ Main segment created (${(bodyDur / 60).toFixed(1)} min)`);
+    console.log(`     ✅ Main segment created (${(mainDur / 60).toFixed(1)} min)`);
   }
 
-  // Step 5: Create outro video (title card 5s)
+  // Step 4b: Burn Thai subtitles onto main segment
+  const mainWithSubs = join(audioDir, `main-subs-${videoId}.mp4`);
+  if (!existsSync(mainWithSubs) && existsSync(mainVideo)) {
+    console.log(`     📝 Generating subtitles...`);
+    const srtPath = generateSubtitle(date, mosque);
+    if (srtPath && existsSync(srtPath)) {
+      console.log(`     🔥 Burning subtitles...`);
+      try {
+        execSync(
+          `ffmpeg -y -i "${mainVideo}" ` +
+          `-vf "subtitles=${srtPath}:force_style='FontName=Sarabun,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,Shadow=1,MarginV=40'" ` +
+          `-c:v libx264 -preset fast -crf 23 -c:a copy "${mainWithSubs}" 2>/dev/null`,
+          { timeout: 600000 }
+        );
+        console.log(`     ✅ Subtitles burned`);
+      } catch (err: any) {
+        console.log(`     ⚠️ Subtitle burn failed, using video without subs`);
+      }
+    }
+  }
+
+  // Use subtitled version if available
+  const mainForConcat = existsSync(mainWithSubs) ? mainWithSubs : mainVideo;
+
+  // Step 5: Create overflow segment if TTS is longer than source video
+  // Shows title card while remaining TTS audio plays
+  const overflowVideo = join(audioDir, `overflow-${videoId}.mp4`);
+  const bodyAudioForOverflow = join(audioDir, `${date}-${mosque}-th.mp3`);
+  const bodyDurTotal = getDuration(bodyAudioForOverflow);
+  const sourceVideoDurCheck = getDuration(sourceVideo) - (metadata.khutbah_start_seconds || 25);
+  const overflowDur = bodyDurTotal - sourceVideoDurCheck;
+
+  if (overflowDur > 5 && !existsSync(overflowVideo)) {
+    console.log(`     📎 TTS overflow: ${(overflowDur / 60).toFixed(1)}min remaining → title card`);
+    // Extract remaining TTS audio (from where video ended)
+    const overflowAudio = join(audioDir, `overflow-audio-${videoId}.mp3`);
+    execSync(
+      `ffmpeg -y -ss ${sourceVideoDurCheck} -i "${bodyAudioForOverflow}" -c copy "${overflowAudio}" 2>/dev/null`,
+      { timeout: 30000 }
+    );
+    const actualOverflowDur = getDuration(overflowAudio);
+    execSync(
+      `ffmpeg -y -loop 1 -i "${titleImg}" -i "${overflowAudio}" ` +
+      `-c:v libx264 -tune stillimage -preset fast -crf 23 ` +
+      `-c:a aac -b:a 192k -t ${actualOverflowDur} -pix_fmt yuv420p "${overflowVideo}" 2>/dev/null`,
+      { timeout: 120000 }
+    );
+    try { unlinkSync(overflowAudio); } catch {}
+    console.log(`     ✅ Overflow segment: ${(actualOverflowDur / 60).toFixed(1)}min`);
+  }
+
+  // Step 6: Create outro video (title card)
   const outroVideo = join(audioDir, `outro-${videoId}.mp4`);
   if (!existsSync(outroVideo)) {
     const outroAudio = join(audioDir, `${date}-${mosque}-outro-padded.mp3`);
@@ -304,9 +356,9 @@ async function createVideo(audioPath: string, outputPath: string, title: string,
     }
   }
 
-  // Step 6: Concat intro + main + outro using filter_complex for reliable concat
+  // Step 7: Concat intro + main + overflow (if any) + outro
   console.log(`     🔗 Assembling final video...`);
-  const parts = [introVideo, mainVideo, outroVideo].filter(p => existsSync(p));
+  const parts = [introVideo, mainForConcat, overflowVideo, outroVideo].filter(p => existsSync(p));
   const n = parts.length;
   const inputs = parts.map((p, i) => `-i "${p}"`).join(" ");
   const filterParts = parts.map((_, i) => `[${i}:v:0][${i}:a:0]`).join("");
