@@ -17,6 +17,7 @@ export interface KhutbahEntry {
   title: string;         // AI-generated topic title
   translationHtml: string;
   topics?: string[];
+  ourYoutubeId?: string; // Our Thai translation YouTube video ID
 }
 
 const THAI_MONTHS = [
@@ -48,6 +49,8 @@ function mdToHtml(md: string): string {
   clean = clean.replace(/^# .+$/m, "");
   // Remove metadata bullet lines (- **วันที่:** etc)
   clean = clean.replace(/^- \*\*[^*]+\*\*:.*$/gm, "");
+  // Remove "ไฮไลท์สำหรับ Reels" section and everything after it
+  clean = clean.replace(/## ไฮไลท์สำหรับ Reels[\s\S]*$/m, "");
 
   return marked.parse(clean, { async: false }) as string;
 }
@@ -74,6 +77,7 @@ function loadEntry(date: string, mosque: string): KhutbahEntry | null {
     title: meta.title || `คุฏบะฮ์วันศุกร์`,
     translationHtml: mdToHtml(translation),
     topics: meta.topics,
+    ourYoutubeId: meta.our_youtube_id,
   };
 }
 
