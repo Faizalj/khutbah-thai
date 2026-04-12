@@ -19,8 +19,8 @@ pipeline:
 tts:
   provider: "elevenlabs"
   voice_id: "camsOHfnF030L7enGMzZ"  # Faizal's voice clone
-  arabic_volume: 0.20    # Background Arabic audio level
-  thai_volume: 0.80      # Thai TTS voiceover level
+  arabic_volume: 0.08    # Background Arabic audio — very subtle
+  thai_volume: 0.90      # Thai TTS voiceover level
 
 intro_template: "คุฏบะฮ์แปลไทย. คุฏบะฮ์วันศุกร์จาก{mosque_thai}. โดยเชค {sheikh}. วันที่ {date_thai}."
 outro_template: "แปลและอ่านออกเสียงโดยระบบปัญญาประดิษฐ์. หากมีข้อผิดพลาดประการใด ได้โปรดแจ้งเราเพื่อแก้ไข. ติดตามคุฏบะฮ์แปลไทยทุกสัปดาห์."
