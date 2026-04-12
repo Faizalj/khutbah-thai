@@ -61,16 +61,17 @@ function mdToHtml(md: string): string {
   return marked.parse(clean, { async: false }) as string;
 }
 
-/** Generate URL-safe Thai slug with uniqueness */
+/** Generate URL: /id/thai-title — ID is permanent, title is SEO */
 function generateSlug(title: string, mosque: string, date: string): string {
-  let slug = `${title}-${mosque}`
+  const id = `${date}-${mosque}`;
+  const thaiSlug = title
     .replace(/\s+/g, "-")
     .replace(/[\/\\?#\[\]@!$&'()*+,;=:.]/g, "")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
     .trim();
 
-  return slug;
+  return `${id}/${thaiSlug}`;
 }
 
 /** Slug → date/mosque lookup map (built on first call) */
@@ -111,8 +112,7 @@ function loadEntry(date: string, mosque: string): KhutbahEntry | null {
   const translation = readFileSync(translationPath, "utf-8");
 
   const title = meta.title || "คุฏบะฮ์วันศุกร์";
-  const mosqueShort = meta.mosque === "makkah" ? "มักกะฮ์" : "มะดีนะฮ์";
-  const slug = generateSlug(title, mosqueShort, meta.date);
+  const slug = generateSlug(title, meta.mosque, meta.date);
 
   return {
     date: meta.date,
@@ -149,15 +149,21 @@ export function loadAllEntries(): KhutbahEntry[] {
   return entries;
 }
 
-/** Load a single entry by slug */
+/** Load a single entry by slug — format: date-mosque/thai-title */
 export function loadEntryBySlug(slug: string): KhutbahEntry | null {
-  // Try new Thai slug format first
+  // New format: 2026-04-10-makkah/ตักเตือนหัวใจ...
+  // Extract ID part (before /)
+  const idPart = slug.split("/")[0];
+  const match = idPart.match(/^(\d{4}-\d{2}-\d{2})-(makkah|madinah)$/);
+  if (match) return loadEntry(match[1], match[2]);
+
+  // Fallback: try slug map
   const map = buildSlugMap();
   const lookup = map.get(slug) || map.get(decodeURIComponent(slug));
   if (lookup) return loadEntry(lookup.date, lookup.mosque);
 
-  // Fallback: old date-mosque format
-  const match = slug.match(/^(\d{4}-\d{2}-\d{2})-(makkah|madinah)$/);
-  if (!match) return null;
+  // Fallback: old format
+  const oldMatch = slug.match(/^(\d{4}-\d{2}-\d{2})-(makkah|madinah)$/);
+  if (!oldMatch) return null;
   return loadEntry(match[1], match[2]);
 }
