@@ -61,6 +61,44 @@ function mdToHtml(md: string): string {
   return marked.parse(clean, { async: false }) as string;
 }
 
+/** Generate URL-safe Thai slug with uniqueness */
+function generateSlug(title: string, mosque: string, date: string): string {
+  let slug = `${title}-${mosque}`
+    .replace(/\s+/g, "-")
+    .replace(/[\/\\?#\[\]@!$&'()*+,;=:.]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .trim();
+
+  return slug;
+}
+
+/** Slug → date/mosque lookup map (built on first call) */
+let slugMap: Map<string, { date: string; mosque: string }> | null = null;
+
+function buildSlugMap(): Map<string, { date: string; mosque: string }> {
+  if (slugMap) return slugMap;
+  slugMap = new Map();
+  const entries = loadAllEntries();
+
+  // Check for duplicates — if title+mosque clash, append date
+  const seen = new Map<string, number>();
+  for (const entry of entries) {
+    const count = (seen.get(entry.slug) || 0) + 1;
+    seen.set(entry.slug, count);
+  }
+
+  for (const entry of entries) {
+    let slug = entry.slug;
+    if ((seen.get(slug) || 0) > 1) {
+      slug = `${slug}-${entry.date}`;
+    }
+    slugMap.set(slug, { date: entry.date, mosque: entry.mosque });
+  }
+
+  return slugMap;
+}
+
 /** Load a single khutbah entry */
 function loadEntry(date: string, mosque: string): KhutbahEntry | null {
   const dir = join(CONTENT_DIR, date, mosque);
@@ -72,6 +110,10 @@ function loadEntry(date: string, mosque: string): KhutbahEntry | null {
   const meta = JSON.parse(readFileSync(metaPath, "utf-8"));
   const translation = readFileSync(translationPath, "utf-8");
 
+  const title = meta.title || "คุฏบะฮ์วันศุกร์";
+  const mosqueShort = meta.mosque === "makkah" ? "มักกะฮ์" : "มะดีนะฮ์";
+  const slug = generateSlug(title, mosqueShort, meta.date);
+
   return {
     date: meta.date,
     mosque: meta.mosque,
@@ -79,8 +121,8 @@ function loadEntry(date: string, mosque: string): KhutbahEntry | null {
     sheikh: meta.sheikh,
     videoId: meta.video_id,
     videoUrl: meta.video_url,
-    slug: `${meta.date}-${meta.mosque}`,
-    title: meta.title || `คุฏบะฮ์วันศุกร์`,
+    slug,
+    title,
     translationHtml: mdToHtml(translation),
     topics: meta.topics,
     ourYoutubeId: meta.our_youtube_id,
@@ -109,6 +151,12 @@ export function loadAllEntries(): KhutbahEntry[] {
 
 /** Load a single entry by slug */
 export function loadEntryBySlug(slug: string): KhutbahEntry | null {
+  // Try new Thai slug format first
+  const map = buildSlugMap();
+  const lookup = map.get(slug) || map.get(decodeURIComponent(slug));
+  if (lookup) return loadEntry(lookup.date, lookup.mosque);
+
+  // Fallback: old date-mosque format
   const match = slug.match(/^(\d{4}-\d{2}-\d{2})-(makkah|madinah)$/);
   if (!match) return null;
   return loadEntry(match[1], match[2]);

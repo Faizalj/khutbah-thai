@@ -224,6 +224,10 @@ async function generateTts(dateMosque: string): Promise<boolean> {
   const chunks = chunkText(cleanText, 1500);
   console.log(`     📝 Text: ${cleanText.length} chars → ${chunks.length} chunks`);
 
+  // Save TTS source text — subtitle must use this exact text
+  writeFileSync(join(contentPath, "tts-source-text.txt"), cleanText);
+  console.log(`     💾 Saved tts-source-text.txt`);
+
   // TTS each chunk
   const chunksDir = join(audioDir, `${date}-${mosque}-chunks`);
   mkdirSync(chunksDir, { recursive: true });

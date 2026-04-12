@@ -309,6 +309,31 @@ a:hover {
   font-weight: 700;
 }
 
+/* Quran Arabic text — right-to-left, larger, special styling */
+.khutbah-content p:has(+ p) {
+  /* default paragraph */
+}
+
+/* Arabic Quran brackets ﴿﴾ styling via CSS */
+.khutbah-content p {
+  direction: ltr;
+}
+
+/* Style paragraphs containing ﴿ as Quran verses */
+.quran-verse {
+  direction: rtl;
+  text-align: center;
+  font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', serif;
+  font-size: 1.4rem;
+  line-height: 2.4;
+  color: var(--green-900);
+  padding: 1rem;
+  margin: 1.5rem 0 0.5rem;
+  background: var(--green-50);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
 .khutbah-content hr {
   border: none;
   border-top: 1px solid var(--border);

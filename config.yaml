@@ -25,6 +25,11 @@ tts:
 intro_template: "คุฏบะฮ์แปลไทย. คุฏบะฮ์วันศุกร์จาก{mosque_thai}. โดยเชค {sheikh}. วันที่ {date_thai}."
 outro_template: "แปลและอ่านออกเสียงโดยระบบปัญญาประดิษฐ์. หากมีข้อผิดพลาดประการใด ได้โปรดแจ้งเราเพื่อแก้ไข. ติดตามคุฏบะฮ์แปลไทยทุกสัปดาห์."
 
+publish:
+  youtube_channel: "UCqjxpYdMIlC6jScvyZhAC-A"
+  youtube_channel_url: "https://www.youtube.com/channel/UCqjxpYdMIlC6jScvyZhAC-A"
+  # Credentials in ~/.env: YOUTUBE_REFRESH_TOKEN, YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET
+
 output:
   content_dir: "content"        # Git-tracked translations
   audio_dir: "output/audio"     # Generated TTS (gitignored)

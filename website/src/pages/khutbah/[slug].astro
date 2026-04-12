@@ -87,3 +87,12 @@ const readingMinutes = Math.max(1, Math.round(wordCount / 200));
   </div>
 
 </Base>
+
+<script>
+  // Auto-detect Quran verses (﴿...﴾) and add styling class
+  document.querySelectorAll('.khutbah-content p').forEach(p => {
+    if (p.textContent?.includes('﴿')) {
+      p.classList.add('quran-verse');
+    }
+  });
+</script>

@@ -26,7 +26,11 @@ WRITING STYLE:
 - Do NOT add section headers, chunk markers, or structural labels.
 - Do NOT add numbering like "ส่วนที่ 1/3".
 - Write as pure narration.
-- For Quranic verses: translate the meaning, then add surah name and ayah reference in parentheses.
+- For Quranic verses: KEEP the original Arabic text in ﴿﴾ brackets, then translate the meaning on the next line, then add surah name and ayah reference. Format:
+
+﴿Arabic verse text﴾
+
+ความว่า: Thai translation here (ซูเราะฮ์ name: ayah number)
 
 STANDARD THAI ISLAMIC TERMINOLOGY:
 - ตักวา (تقوى)

@@ -18,7 +18,20 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "
 import { parse as parseYaml } from "yaml";
 import { join } from "path";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
-import { generateSubtitle } from "./subtitle-gen";
+/** Generate subtitle using Python script (pythainlp word boundaries) */
+function generateSubtitle(date: string, mosque: string): string | null {
+  const srtPath = join(ROOT, "content", date, mosque, "subtitle-th.srt");
+  try {
+    execSync(
+      `python3 "${join(ROOT, "pipeline", "subtitle-gen.py")}" ${date} ${mosque}`,
+      { timeout: 300000, cwd: ROOT }
+    );
+    return existsSync(srtPath) ? srtPath : null;
+  } catch (err: any) {
+    console.log(`     ⚠️ Subtitle generation failed: ${err.message?.slice(0, 100)}`);
+    return null;
+  }
+}
 
 const ROOT = import.meta.dir.replace("/pipeline", "");
 const CONFIG = parseYaml(readFileSync(join(ROOT, "config.yaml"), "utf-8"));
@@ -323,7 +336,7 @@ async function createVideo(audioPath: string, outputPath: string, title: string,
   const overflowDur = bodyDurTotal - sourceVideoDurCheck;
 
   if (overflowDur > 5 && !existsSync(overflowVideo)) {
-    console.log(`     📎 TTS overflow: ${(overflowDur / 60).toFixed(1)}min remaining → title card`);
+    console.log(`     📎 TTS overflow: ${(overflowDur / 60).toFixed(1)}min remaining → title card + captions`);
     // Extract remaining TTS audio (from where video ended)
     const overflowAudio = join(audioDir, `overflow-audio-${videoId}.mp3`);
     execSync(
@@ -331,14 +344,61 @@ async function createVideo(audioPath: string, outputPath: string, title: string,
       { timeout: 30000 }
     );
     const actualOverflowDur = getDuration(overflowAudio);
-    execSync(
-      `ffmpeg -y -loop 1 -i "${titleImg}" -i "${overflowAudio}" ` +
-      `-c:v libx264 -tune stillimage -preset fast -crf 23 ` +
-      `-c:a aac -b:a 192k -t ${actualOverflowDur} -pix_fmt yuv420p "${overflowVideo}" 2>/dev/null`,
-      { timeout: 120000 }
-    );
+
+    // Create overflow SRT — shift main SRT timing to start from 0 for overflow portion
+    const srtPath = join(ROOT, "content", date, mosque, "subtitle-th.srt");
+    const overflowSrt = join(audioDir, `overflow-subs-${videoId}.srt`);
+    if (existsSync(srtPath)) {
+      const srtContent = readFileSync(srtPath, "utf-8");
+      const blocks = srtContent.split(/\n\n+/).filter(b => b.trim());
+      const overflowBlocks: string[] = [];
+      let idx = 1;
+      for (const block of blocks) {
+        const timeMatch = block.match(/(\d{2}):(\d{2}):(\d{2}),(\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2}),(\d{3})/);
+        if (!timeMatch) continue;
+        const startSec = parseInt(timeMatch[1]) * 3600 + parseInt(timeMatch[2]) * 60 + parseInt(timeMatch[3]) + parseInt(timeMatch[4]) / 1000;
+        const endSec = parseInt(timeMatch[5]) * 3600 + parseInt(timeMatch[6]) * 60 + parseInt(timeMatch[7]) + parseInt(timeMatch[8]) / 1000;
+        if (startSec >= sourceVideoDurCheck) {
+          const newStart = startSec - sourceVideoDurCheck;
+          const newEnd = endSec - sourceVideoDurCheck;
+          const lines = block.split("\n");
+          const text = lines.slice(2).join("\n");
+          const fmtTime = (s: number) => {
+            const h = Math.floor(s / 3600);
+            const m = Math.floor((s % 3600) / 60);
+            const sec = Math.floor(s % 60);
+            const ms = Math.floor((s % 1) * 1000);
+            return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")},${String(ms).padStart(3,"0")}`;
+          };
+          overflowBlocks.push(`${idx}\n${fmtTime(newStart)} --> ${fmtTime(newEnd)}\n${text}`);
+          idx++;
+        }
+      }
+      if (overflowBlocks.length > 0) {
+        writeFileSync(overflowSrt, overflowBlocks.join("\n\n") + "\n");
+      }
+    }
+
+    // Create overflow video with subtitles if available
+    if (existsSync(overflowSrt)) {
+      execSync(
+        `ffmpeg -y -loop 1 -i "${titleImg}" -i "${overflowAudio}" ` +
+        `-vf "subtitles=${overflowSrt}:force_style='FontName=Sarabun,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,Shadow=1,MarginV=40'" ` +
+        `-c:v libx264 -tune stillimage -preset fast -crf 23 ` +
+        `-c:a aac -b:a 192k -t ${actualOverflowDur} -pix_fmt yuv420p "${overflowVideo}" 2>/dev/null`,
+        { timeout: 120000 }
+      );
+      try { unlinkSync(overflowSrt); } catch {}
+    } else {
+      execSync(
+        `ffmpeg -y -loop 1 -i "${titleImg}" -i "${overflowAudio}" ` +
+        `-c:v libx264 -tune stillimage -preset fast -crf 23 ` +
+        `-c:a aac -b:a 192k -t ${actualOverflowDur} -pix_fmt yuv420p "${overflowVideo}" 2>/dev/null`,
+        { timeout: 120000 }
+      );
+    }
     try { unlinkSync(overflowAudio); } catch {}
-    console.log(`     ✅ Overflow segment: ${(actualOverflowDur / 60).toFixed(1)}min`);
+    console.log(`     ✅ Overflow segment: ${(actualOverflowDur / 60).toFixed(1)}min (with captions)`);
   }
 
   // Step 6: Create outro video (title card)
@@ -360,15 +420,15 @@ async function createVideo(audioPath: string, outputPath: string, title: string,
   console.log(`     🔗 Assembling final video...`);
   const parts = [introVideo, mainForConcat, overflowVideo, outroVideo].filter(p => existsSync(p));
   const n = parts.length;
-  const inputs = parts.map((p, i) => `-i "${p}"`).join(" ");
+  const inputs = parts.map((p) => `-i "${p}"`).join(" ");
   const filterParts = parts.map((_, i) => `[${i}:v:0][${i}:a:0]`).join("");
 
   execSync(
     `ffmpeg -y ${inputs} ` +
     `-filter_complex "${filterParts}concat=n=${n}:v=1:a=1[outv][outa]" ` +
     `-map "[outv]" -map "[outa]" ` +
-    `-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -pix_fmt yuv420p "${outputPath}" 2>/dev/null`,
-    { timeout: 600000 }
+    `-c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 192k -pix_fmt yuv420p "${outputPath}" 2>/dev/null`,
+    { timeout: 1200000 }
   );
 }
 
