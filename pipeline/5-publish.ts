@@ -107,7 +107,7 @@ async function publishKhutbah(dateMosque: string): Promise<boolean> {
 แปลและอ่านออกเสียงโดยระบบปัญญาประดิษฐ์
 หากมีข้อผิดพลาดประการใด ได้โปรดแจ้งเราเพื่อแก้ไข
 
-อ่านบทแปลฉบับเต็ม: https://khutbah-thai.pages.dev
+อ่านบทแปลฉบับเต็ม: https://khutbahthai.com
 
 #คุฏบะฮ์ #คุฏบะฮ์แปลไทย #${mosque === "makkah" ? "มักกะฮ์" : "มะดีนะฮ์"} #วันศุกร์ #อิสลาม`;
 
