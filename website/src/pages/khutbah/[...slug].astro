@@ -24,7 +24,7 @@ const wordCount = entry.translationHtml.replace(/<[^>]+>/g, '').length / 2;
 const readingMinutes = Math.max(1, Math.round(wordCount / 200));
 ---
 
-<Base title={`${entry.title} — ${entry.mosqueThai}`} description={description} ogImage={`https://img.youtube.com/vi/${entry.videoId}/maxresdefault.jpg`}>
+<Base title={`${entry.title} — ${entry.mosqueThai}`} description={description} ogImage={`https://khutbahthai.com/thumbnails/${entry.date}-${entry.mosque}-thumb.png`}>
 
   <div class="khutbah-header">
     <div class="container">
