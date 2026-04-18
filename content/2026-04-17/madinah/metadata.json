@@ -7,7 +7,13 @@
   "video_url": "https://www.youtube.com/watch?v=1F6JawOt-ek",
   "source_channel": "Haramain Recordings",
   "khutbah_start_seconds": 18,
-  "status": "corrected",
+  "status": "published",
   "fetched_at": "2026-04-17T11:47:17.760Z",
-  "corrected_at": "2026-04-18T00:16:54.071Z"
+  "corrected_at": "2026-04-18T00:16:54.071Z",
+  "translated_at": "2026-04-18T01:45:32.828Z",
+  "tts_at": "2026-04-18T01:50:13.844Z",
+  "audio_duration_seconds": 1746,
+  "produced_at": "2026-04-18T02:11:47.316Z",
+  "our_youtube_id": "VjkOeFeGMlQ",
+  "published_at": "2026-04-18T02:12:43.914Z"
 }
