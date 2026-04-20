@@ -183,6 +183,25 @@ for (const mosque of ["makkah", "madinah"]) {
     results.translated++;
   }
 
+  // 2b: Auto-generate title if missing
+  if (existsSync(join(contentDir, "translation-th.md"))) {
+    const meta = JSON.parse(readFileSync(join(contentDir, "metadata.json"), "utf-8"));
+    if (!meta.title) {
+      try {
+        const translation = readFileSync(join(contentDir, "translation-th.md"), "utf-8").slice(0, 2000);
+        const titleResult = execSync(
+          `echo ${JSON.stringify(translation)} | claude --print --model haiku --output-format text --setting-sources '' --system-prompt "สร้างหัวข้อสั้นภาษาไทย 1 บรรทัด ไม่เกิน 60 ตัวอักษร สำหรับคุฏบะฮ์นี้ ตอบแค่หัวข้ออย่างเดียว"`,
+          { encoding: "utf-8", timeout: 30000 }
+        ).trim();
+        if (titleResult && titleResult.length < 80) {
+          meta.title = titleResult;
+          writeFileSync(join(contentDir, "metadata.json"), JSON.stringify(meta, null, 2));
+          log(`  ✅ Title: ${titleResult}`);
+        }
+      } catch { log(`  ⚠️ Title generation failed`); }
+    }
+  }
+
   // 3: TTS
   if (existsSync(join(contentDir, "translation-th.md"))) {
     const ttsResult = await safeRun(`TTS ${mosque}`, () => tts(date, mosque), 1);
