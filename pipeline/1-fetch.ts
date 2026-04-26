@@ -31,7 +31,7 @@ function listKhutbahVideos(targetDate?: string): VideoInfo[] {
   console.log("  📡 Polling channel:", CONFIG.source.channel_name);
 
   const raw = execSync(
-    `yt-dlp --flat-playlist --print "%(title)s|||%(id)s" --playlist-end 30 "${channelUrl}" 2>/dev/null`,
+    `yt-dlp --flat-playlist --print "%(title)s|||%(id)s" --playlist-end 60 "${channelUrl}" 2>/dev/null`,
     { encoding: "utf-8", timeout: 30000 }
   );
 
