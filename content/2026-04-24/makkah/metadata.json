@@ -7,10 +7,14 @@
   "video_url": "https://www.youtube.com/watch?v=X27rs-s8oxQ",
   "source_channel": "Haramain Recordings",
   "khutbah_start_seconds": 21,
-  "status": "tts_done",
+  "status": "published",
   "fetched_at": "2026-04-26T12:56:08.896Z",
   "corrected_at": "2026-04-26T13:12:09.855Z",
   "translated_at": "2026-04-26T13:31:00.897Z",
   "tts_at": "2026-04-26T13:36:41.978Z",
-  "audio_duration_seconds": 1320
+  "audio_duration_seconds": 1320,
+  "produced_at": "2026-04-26T14:25:49.533Z",
+  "our_youtube_id": "Z19NlKHJrP0",
+  "published_at": "2026-04-26T14:27:27.592Z",
+  "title": "บัยตุลฮะรามศรัทธาบริสุทธิ์เมืองบะรอกะฮ์"
 }
