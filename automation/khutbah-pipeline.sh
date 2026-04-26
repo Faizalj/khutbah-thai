@@ -3,7 +3,7 @@
 # Triggered by launchd every Friday at 18:00 Bangkok time
 # Waits for Haramain Recordings to upload (~14:30 Saudi = 18:30 Bangkok)
 
-export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.bun/bin"
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.bun/bin"
 export HOME="/Users/faizal"
 export KMP_DUPLICATE_LIB_OK=TRUE
 
