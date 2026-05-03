@@ -297,8 +297,8 @@ async function createVideo(audioPath: string, outputPath: string, title: string,
       `ffmpeg -y -ss ${startSec} -t ${mainDur} -i "${sourceVideo}" -i "${bodyAudio}" ` +
       `-filter_complex "[0:a]volume=${arVol}[ar];[1:a]atrim=0:${mainDur},volume=${thaiVol}[thai];[thai][ar]amix=inputs=2:duration=first[aout]" ` +
       `-map 0:v -map "[aout]" ` +
-      `-c:v libx264 -preset fast -crf 23 -c:a aac -b:a 192k -pix_fmt yuv420p "${mainVideo}" 2>/dev/null`,
-      { timeout: 600000 }
+      `-c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 192k -pix_fmt yuv420p "${mainVideo}" 2>/dev/null`,
+      { timeout: 1200000 }
     );
     console.log(`     ✅ Main segment created (${(mainDur / 60).toFixed(1)} min)`);
   }
@@ -314,8 +314,8 @@ async function createVideo(audioPath: string, outputPath: string, title: string,
         execSync(
           `ffmpeg -y -i "${mainVideo}" ` +
           `-vf "subtitles=${srtPath}:force_style='FontName=Sarabun,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,Shadow=1,MarginV=40'" ` +
-          `-c:v libx264 -preset fast -crf 23 -c:a copy "${mainWithSubs}" 2>/dev/null`,
-          { timeout: 600000 }
+          `-c:v libx264 -preset ultrafast -crf 23 -c:a copy "${mainWithSubs}" 2>/dev/null`,
+          { timeout: 1200000 }
         );
         console.log(`     ✅ Subtitles burned`);
       } catch (err: any) {
