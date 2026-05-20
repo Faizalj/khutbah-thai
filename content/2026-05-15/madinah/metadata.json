@@ -7,6 +7,14 @@
   "video_url": "https://www.youtube.com/watch?v=gZBAogrd8PU",
   "source_channel": "Haramain Recordings",
   "khutbah_start_seconds": 25,
-  "status": "fetched",
-  "fetched_at": "2026-05-15T11:05:17.436Z"
+  "status": "published",
+  "fetched_at": "2026-05-15T11:05:17.436Z",
+  "corrected_at": "2026-05-20T13:39:26.399Z",
+  "translated_at": "2026-05-20T13:55:01.345Z",
+  "title": "ตักวาคือสาระแท้ของฮัจญ์",
+  "tts_at": "2026-05-20T14:00:17.806Z",
+  "audio_duration_seconds": 999,
+  "produced_at": "2026-05-20T14:03:29.864Z",
+  "our_youtube_id": "GvBHEgw_dxU",
+  "published_at": "2026-05-20T14:03:55.818Z"
 }
