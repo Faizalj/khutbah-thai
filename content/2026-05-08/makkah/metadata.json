@@ -7,7 +7,14 @@
   "video_url": "https://www.youtube.com/watch?v=93cXyLSSK7I",
   "source_channel": "Haramain Recordings",
   "khutbah_start_seconds": 27,
-  "status": "corrected",
+  "status": "published",
   "fetched_at": "2026-05-08T11:03:35.688Z",
-  "corrected_at": "2026-05-08T11:31:00.331Z"
+  "corrected_at": "2026-05-08T11:31:00.331Z",
+  "translated_at": "2026-05-20T12:45:30.869Z",
+  "title": "ฮัจย์มับรูรและการทำให้บริสุทธิ์จากบาป",
+  "tts_at": "2026-05-20T12:50:36.645Z",
+  "audio_duration_seconds": 916,
+  "produced_at": "2026-05-20T12:54:32.177Z",
+  "our_youtube_id": "yDlH5bCJ68w",
+  "published_at": "2026-05-20T12:54:54.258Z"
 }
