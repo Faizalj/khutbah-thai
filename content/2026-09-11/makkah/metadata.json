@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-11",
+  "mosque": "makkah",
+  "mosque_thai": "มักกะฮ์",
+  "sheikh": "Sheikh Mu’ayqali",
+  "video_id": "6wM9QUBpsmY",
+  "video_url": "https://www.youtube.com/watch?v=6wM9QUBpsmY",
+  "source_channel": "Haramain Recordings",
+  "khutbah_start_seconds": 28,
+  "status": "tts_done",
+  "fetched_at": "2026-09-11T12:15:32.111Z",
+  "corrected_at": "2026-09-11T12:15:36.289Z",
+  "translated_at": "2026-09-11T12:15:37.069Z",
+  "tts_at": "2026-09-11T12:15:43.579Z",
+  "audio_duration_seconds": 2
+}
