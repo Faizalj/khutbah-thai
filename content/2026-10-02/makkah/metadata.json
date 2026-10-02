@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-02",
+  "mosque": "makkah",
+  "mosque_thai": "มักกะฮ์",
+  "sheikh": "Sheikh Ghazzawi",
+  "video_id": "DCNMT22C2I8",
+  "video_url": "https://www.youtube.com/watch?v=DCNMT22C2I8",
+  "source_channel": "Haramain Recordings",
+  "khutbah_start_seconds": 24,
+  "status": "tts_done",
+  "fetched_at": "2026-10-02T11:00:08.532Z",
+  "corrected_at": "2026-10-02T11:00:14.895Z",
+  "translated_at": "2026-10-02T11:00:15.722Z",
+  "tts_at": "2026-10-02T11:00:21.677Z",
+  "audio_duration_seconds": 4
+}

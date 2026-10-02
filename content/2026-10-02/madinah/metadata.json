@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-02",
+  "mosque": "madinah",
+  "mosque_thai": "มะดีนะฮ์",
+  "sheikh": "Sheikh Bu’ayjaan",
+  "video_id": "uvTPDP1y00I",
+  "video_url": "https://www.youtube.com/watch?v=uvTPDP1y00I",
+  "source_channel": "Haramain Recordings",
+  "khutbah_start_seconds": 27,
+  "status": "tts_done",
+  "fetched_at": "2026-10-02T11:00:10.430Z",
+  "corrected_at": "2026-10-02T11:00:46.219Z",
+  "translated_at": "2026-10-02T11:00:47.053Z",
+  "tts_at": "2026-10-02T11:00:53.179Z",
+  "audio_duration_seconds": 2
+}
