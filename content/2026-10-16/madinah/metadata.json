@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-16",
+  "mosque": "madinah",
+  "mosque_thai": "มะดีนะฮ์",
+  "sheikh": "Sheikh Ahmed Hudhaify",
+  "video_id": "vuNrRQSTluM",
+  "video_url": "https://www.youtube.com/watch?v=vuNrRQSTluM",
+  "source_channel": "Haramain Recordings",
+  "khutbah_start_seconds": 27,
+  "status": "tts_done",
+  "fetched_at": "2026-10-16T12:35:30.905Z",
+  "corrected_at": "2026-10-16T12:37:51.109Z",
+  "translated_at": "2026-10-16T12:37:51.930Z",
+  "tts_at": "2026-10-16T12:37:54.969Z",
+  "audio_duration_seconds": 4
+}
