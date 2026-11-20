@@ -7,7 +7,7 @@
 ```
 1. FETCH     → ดึง transcript อาหรับจาก YouTube (Haramain Recordings)
 2. TRANSLATE → แปล อาหรับ → ไทย (Claude AI)
-3. TTS       → สร้างเสียงอ่านภาษาไทย (ElevenLabs)
+3. TTS       → สร้างเสียงอ่านภาษาไทย (Gemini gemini-3.8-flash-lite-tts เท่านั้น)
 4. PRODUCE   → ผลิตวิดีโอ: เสียงอาหรับ 20% + เสียงไทย 80% + subtitle
 5. PUBLISH   → เผยแพร่ YouTube + Facebook/IG Reels
 ```

@@ -18,6 +18,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "
 import { parse as parseYaml } from "yaml";
 import { join } from "path";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
+import { geminiTts } from "./gemini-tts";
 /** Generate subtitle using Python script (pythainlp word boundaries) */
 function generateSubtitle(date: string, mosque: string): string | null {
   const srtPath = join(ROOT, "content", date, mosque, "subtitle-th.srt");
@@ -35,14 +36,6 @@ function generateSubtitle(date: string, mosque: string): string | null {
 
 const ROOT = import.meta.dir.replace("/pipeline", "");
 const CONFIG = parseYaml(readFileSync(join(ROOT, "config.yaml"), "utf-8"));
-
-// ElevenLabs config (for intro/outro TTS)
-const VOICE_ID = CONFIG.tts.voice_id;
-const API_KEY = (() => {
-  const envFile = readFileSync(join(process.env.HOME!, ".env"), "utf-8");
-  const match = envFile.match(/ELEVENLABS_API_KEY=(.+)/);
-  return match?.[1]?.trim() || "";
-})();
 
 // Thai month names
 const THAI_MONTHS = [
@@ -70,36 +63,6 @@ function generateIntroText(metadata: any, date: string): string {
 
 function generateOutroText(): string {
   return CONFIG.outro_template;
-}
-
-/** Call ElevenLabs TTS for short text (intro/outro) */
-async function ttsShort(text: string, outputPath: string): Promise<void> {
-  const body = {
-    text,
-    model_id: "eleven_v3",
-    language_code: "th",
-    voice_settings: { stability: 0.7, similarity_boost: 0.8 },
-  };
-
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`ElevenLabs API error ${response.status}: ${err.slice(0, 200)}`);
-  }
-
-  const buffer = await response.arrayBuffer();
-  writeFileSync(outputPath, Buffer.from(buffer));
 }
 
 /** Download source Arabic audio from YouTube */
@@ -471,17 +434,17 @@ async function produceKhutbah(dateMosque: string): Promise<boolean> {
 
   console.log(`     🎬 Producing video for ${metadata.mosque_thai}...`);
 
-  // Step 1: Generate intro/outro TTS
+  // Step 1: Generate intro/outro TTS (pipeline/gemini-tts.ts; its cache is keyed by model, voice, style, text)
   const introFile = join(audioDir, `${date}-${mosque}-intro.mp3`);
   const outroFile = join(audioDir, `${date}-${mosque}-outro.mp3`);
 
   if (!existsSync(introFile)) {
     console.log(`     🎙️ Generating intro TTS...`);
     try {
-      await ttsShort(generateIntroText(metadata, date), introFile);
+      await geminiTts(generateIntroText(metadata, date), introFile, `${date}-${mosque} intro`);
       console.log(`     ✅ Intro generated`);
-    } catch (err: any) {
-      console.error(`     ❌ Intro TTS failed: ${err.message?.slice(0, 150)}`);
+    } catch (err) {
+      console.error(`     ❌ Intro TTS failed: ${(err as Error).message?.slice(0, 150)}`);
       return false;
     }
   }
@@ -489,10 +452,10 @@ async function produceKhutbah(dateMosque: string): Promise<boolean> {
   if (!existsSync(outroFile)) {
     console.log(`     🎙️ Generating outro TTS...`);
     try {
-      await ttsShort(generateOutroText(), outroFile);
+      await geminiTts(generateOutroText(), outroFile, `${date}-${mosque} outro`);
       console.log(`     ✅ Outro generated`);
-    } catch (err: any) {
-      console.error(`     ❌ Outro TTS failed: ${err.message?.slice(0, 150)}`);
+    } catch (err) {
+      console.error(`     ❌ Outro TTS failed: ${(err as Error).message?.slice(0, 150)}`);
       return false;
     }
   }

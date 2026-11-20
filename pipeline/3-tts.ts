@@ -1,36 +1,22 @@
 #!/usr/bin/env bun
 /**
  * Stage 3: TTS
- * Thai translation → ElevenLabs speech audio (Faizal's voice clone)
+ * Thai translation → Gemini gemini-3.8-flash-lite-tts speech audio (pipeline/gemini-tts.ts, the only TTS path)
  *
  * Usage: bun pipeline/3-tts.ts [YYYY-MM-DD] [makkah|madinah]
  *
  * Reads translation-th.md, strips markdown, chunks to ~1500 chars,
- * calls ElevenLabs API per chunk, concatenates via ffmpeg.
+ * one cached Gemini take per chunk, concatenates via ffmpeg.
  */
 
 import { execSync } from "child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, unlinkSync } from "fs";
 import { parse as parseYaml } from "yaml";
 import { join } from "path";
+import { geminiTts, MODEL, VOICE } from "./gemini-tts";
 
 const ROOT = import.meta.dir.replace("/pipeline", "");
 const CONFIG = parseYaml(readFileSync(join(ROOT, "config.yaml"), "utf-8"));
-
-// ElevenLabs config
-const VOICE_ID = CONFIG.tts.voice_id;
-const MODEL = "eleven_v3";
-const LANG = "th";
-const API_KEY = (() => {
-  const envFile = readFileSync(join(process.env.HOME!, ".env"), "utf-8");
-  const match = envFile.match(/ELEVENLABS_API_KEY=(.+)/);
-  return match?.[1]?.trim() || "";
-})();
-
-if (!API_KEY) {
-  console.error("❌ ELEVENLABS_API_KEY not found in ~/.env");
-  process.exit(1);
-}
 
 /** Strip markdown formatting to get clean TTS-ready narration text */
 function stripMarkdown(md: string): string {
@@ -126,36 +112,6 @@ function chunkText(text: string, maxChars: number = 1500, minChars: number = 300
   return chunks;
 }
 
-/** Call ElevenLabs TTS API for a single chunk */
-async function ttsChunk(text: string, outputPath: string): Promise<void> {
-  const body = {
-    text,
-    model_id: MODEL,
-    language_code: LANG,
-    voice_settings: { stability: 0.7, similarity_boost: 0.8 },
-  };
-
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-    {
-      method: "POST",
-      headers: {
-        "xi-api-key": API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    }
-  );
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`ElevenLabs API error ${response.status}: ${err.slice(0, 200)}`);
-  }
-
-  const buffer = await response.arrayBuffer();
-  writeFileSync(outputPath, Buffer.from(buffer));
-}
-
 /** Concatenate MP3 chunks using ffmpeg */
 function concatChunks(chunkPaths: string[], outputPath: string): number {
   const listFile = outputPath.replace(".mp3", "-concat.txt");
@@ -236,22 +192,13 @@ async function generateTts(dateMosque: string): Promise<boolean> {
   for (let i = 0; i < chunks.length; i++) {
     const chunkPath = join(chunksDir, `chunk_${String(i + 1).padStart(3, "0")}.mp3`);
 
-    // Skip if already generated
-    if (existsSync(chunkPath) && statSync(chunkPath).size > 1000) {
-      console.log(`     ⏭️  Chunk ${i + 1}/${chunks.length} — cached`);
-      chunkPaths.push(chunkPath);
-      continue;
-    }
-
+    // geminiTts serves repeats from output/tts-cache (keyed by model, voice, style, text) — no request
     console.log(`     🔊 Chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)...`);
     try {
-      await ttsChunk(chunks[i], chunkPath);
+      const cached = await geminiTts(chunks[i], chunkPath, `${date}-${mosque} chunk ${i + 1}`);
       const size = statSync(chunkPath).size;
-      console.log(`        ✅ ${(size / 1024).toFixed(0)}KB`);
+      console.log(`        ✅ ${(size / 1024).toFixed(0)}KB${cached ? " (cached)" : ""}`);
       chunkPaths.push(chunkPath);
-
-      // Rate limit — slight delay between calls
-      if (i < chunks.length - 1) await Bun.sleep(500);
     } catch (err: any) {
       console.error(`        ❌ ${err.message?.slice(0, 150)}`);
       return false;
@@ -270,6 +217,8 @@ async function generateTts(dateMosque: string): Promise<boolean> {
     // Update metadata
     metadata.status = "tts_done";
     metadata.tts_at = new Date().toISOString();
+    metadata.tts_model = MODEL;
+    metadata.tts_voice = VOICE;
     metadata.audio_duration_seconds = Math.round(duration);
     writeFileSync(join(contentPath, "metadata.json"), JSON.stringify(metadata, null, 2));
 

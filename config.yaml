@@ -12,13 +12,17 @@ pipeline:
   stages:
     - fetch      # Poll channel, filter, download transcript
     - translate  # Arabic → Thai via Claude
-    - tts        # Thai text → ElevenLabs audio
+    - tts        # Thai text → Gemini gemini-3.8-flash-lite-tts audio
     - produce    # Mix audio + subtitles → video
     - publish    # Upload to platforms (manual initially)
 
 tts:
-  provider: "elevenlabs"
-  voice_id: "camsOHfnF030L7enGMzZ"  # Faizal's voice clone
+  # The only TTS: Gemini gemini-3.8-flash-lite-tts (pipeline/gemini-tts.ts). No other model or provider,
+  # no fallback; HTTP 429/402 stops the run. pipeline/gemini-tts.ts refuses any other tts.model.
+  model: "gemini-3.8-flash-lite-tts"
+  voice: "Charon"   # Gemini prebuilt male voice (was ElevenLabs camsOHfnF030L7enGMzZ — see AGENTS.md)
+  # Director notes sent as speech_metadata (not read aloud); replaces ElevenLabs stability 0.7.
+  style: "Thai Muslim male preacher, mature and warm. Read in standard Thai at a calm, steady, unhurried pace with clear diction; reverent and sincere, never dramatic. Pause briefly at every full stop. Pronounce Arabic-derived Islamic terms exactly as spelled in Thai."
   arabic_volume: 0.08    # Background Arabic audio — very subtle
   thai_volume: 0.90      # Thai TTS voiceover level
 

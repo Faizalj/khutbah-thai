@@ -14,7 +14,7 @@ Automated pipeline that translates weekly Jumu'ah khutbah from Makkah and Madina
 
 1. `pipeline/1-fetch.ts` — Poll channel, filter, download Arabic transcript
 2. `pipeline/2-translate.ts` — Arabic → Thai translation via Codex
-3. `pipeline/3-tts.ts` — Thai text → ElevenLabs audio
+3. `pipeline/3-tts.ts` — Thai text → Gemini `gemini-3.8-flash-lite-tts` audio (`pipeline/gemini-tts.ts`)
 4. `pipeline/4-produce.ts` — Mix audio + create video with subtitles
 5. `pipeline/5-publish.ts` — Upload to platforms (deferred)
 6. `pipeline/run.ts` — Orchestrator
@@ -42,6 +42,14 @@ Automated pipeline that translates weekly Jumu'ah khutbah from Makkah and Madina
 - ซุบฮานะฮูวะตะอาลา — NOT สุบหานะฮู
 - อิสติกอมะฮ์ (استقامة)
 - ดุอาอ์ (دعاء)
+
+## TTS Engine (Faizal's rule, 16 Nov 2026)
+
+- The only TTS is Gemini `gemini-3.8-flash-lite-tts` via `pipeline/gemini-tts.ts` (Interactions API, `GEMINI_API_KEY` from env or `~/.claude/.env`). Never ElevenLabs or any other TTS model/provider, as primary or fallback.
+- Voice, model and style live in `config.yaml` `tts:`; `gemini-tts.ts` refuses any `tts.model` other than flash-lite.
+- Takes are cached in `output/tts-cache/<sha256(model, voice, style, text)>.mp3`; every request is booked in `output/tts-ledger.jsonl`.
+- Shared daily quota (~100 requests per Pacific day across all projects). The first HTTP 429/402 stops the run (exit 75) — no retry, no provider or key switch.
+- Voice mapping: ElevenLabs `camsOHfnF030L7enGMzZ` (Faizal's voice clone) → Gemini prebuilt `Charon` (male, mature, calm-informative; fits an imam reading a khutbah; Faizal's own voice profile is reserved for his ads/courses). ElevenLabs `stability 0.7 / similarity_boost 0.8` → the calm, steady, reverent style prompt in `config.yaml`.
 
 ## TTS Rules
 

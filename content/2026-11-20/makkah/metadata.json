@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-20",
+  "mosque": "makkah",
+  "mosque_thai": "มักกะฮ์",
+  "sheikh": "Sheikh Dosary",
+  "video_id": "Iy5fLFI-wO4",
+  "video_url": "https://www.youtube.com/watch?v=Iy5fLFI-wO4",
+  "source_channel": "Haramain Recordings",
+  "khutbah_start_seconds": 24,
+  "status": "tts_done",
+  "fetched_at": "2026-11-20T11:00:07.595Z",
+  "corrected_at": "2026-11-20T11:01:23.793Z",
+  "translated_at": "2026-11-20T11:05:01.799Z",
+  "title": "ความพอดี: แบบแผนของอัลลอฮ์และเสบียงแห่งตักวา",
+  "tts_at": "2026-11-20T11:11:06.133Z",
+  "tts_model": "gemini-3.8-flash-lite-tts",
+  "tts_voice": "Charon",
+  "audio_duration_seconds": 2806
+}

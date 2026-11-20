@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-20",
+  "mosque": "madinah",
+  "mosque_thai": "มะดีนะฮ์",
+  "sheikh": "Sheikh Budayr",
+  "video_id": "v9qLZw1Xz_8",
+  "video_url": "https://www.youtube.com/watch?v=v9qLZw1Xz_8",
+  "source_channel": "Haramain Recordings",
+  "khutbah_start_seconds": 17,
+  "status": "published",
+  "fetched_at": "2026-11-20T11:00:09.238Z",
+  "corrected_at": "2026-11-20T11:21:01.200Z",
+  "translated_at": "2026-11-20T11:24:58.549Z",
+  "title": "สัญญาณแห่งตัฟกีก: ขออภัยโทษและกลับเนื้อกลับตัว",
+  "tts_at": "2026-11-20T11:30:49.803Z",
+  "tts_model": "gemini-3.8-flash-lite-tts",
+  "tts_voice": "Charon",
+  "audio_duration_seconds": 2740,
+  "produced_at": "2026-11-20T11:38:19.384Z",
+  "our_youtube_id": "F-jpv4InVtw",
+  "published_at": "2026-11-20T11:39:39.542Z"
+}
